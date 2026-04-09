@@ -1,0 +1,41 @@
+body {
+    margin: 3em auto 3em auto;
+    /* font-family: "Nimbus Sans", "Nimbus Sans L", "Helvetica", Inter; */
+    font-family: monospace;
+    font-size: 18px;
+}
+
+#main-div {
+    max-width: 640px;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 12px;
+}
+
+#info-div {
+    border: 1px solid black;
+    border-radius: 12px;
+
+    td:nth-child(1) {
+        text-align: left;
+        user-select: none;
+    }
+    td:nth-child(2) {
+        text-align: right;
+        font-family: monospace;
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    body {
+        color: white;
+        background-color: #17171A;
+    }
+    a {
+        color: skyblue;
+    }
+    #info-div {
+        border-color: grey;
+    }
+}
