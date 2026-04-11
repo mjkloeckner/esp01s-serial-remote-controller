@@ -56,14 +56,14 @@ typedef struct {
     uint8_t to_minute;
 } timer_param_t;
 
-static ESP8266WebServer server(80);
-static WebSocketsServer web_socket = WebSocketsServer(81);
-static uint8_t remote_devices, main_output_enabled;
+ESP8266WebServer server(80);
+WebSocketsServer web_socket = WebSocketsServer(81);
+uint8_t remote_devices, main_output_enabled;
 uint32_t t, system_time_dt;
-static time_t system_time;
-static timer_param_t timer, new_timer;
-static JSONVar data, timer_data;
-static queue_t uart_queue_tx, uart_queue_rx;
+time_t system_time;
+timer_param_t timer, new_timer;
+JSONVar data, timer_data;
+queue_t uart_queue_tx, uart_queue_rx;
 
 void setup_wifi();
 void setup_websocket();
@@ -90,6 +90,7 @@ void setup_wifi()
         delay(200);
         LOG(".");
     }
+    LOG("\n");
 
     LOG_INFO("Connected to '%s', IP address %d.%d.%d.%d\n", WIFI_SSID,
              WiFi.localIP()[0],
@@ -136,7 +137,7 @@ void webserver_update_all_clients_checkbox()
     output_data["timer"]["enabled"] = String(timer.enabled);
 
     output_data_as_json = JSON.stringify(output_data);
-    web_socket.broadcastTXT(output_data_as_json);
+    web_socket.broadcastTXT(output_data_as_json.c_str());
 }
 
 void webserver_update_all_clients_timer_values()
@@ -150,7 +151,7 @@ void webserver_update_all_clients_timer_values()
 
     // web_socket.broadcastTXT(JSON.stringify(output_data).c_str());
     output_data_as_json = JSON.stringify(output_data);
-    web_socket.broadcastTXT(output_data_as_json);
+    web_socket.broadcastTXT(output_data_as_json.c_str());
 }
 
 void websocket_event_handler(uint8_t num, WStype_t type, uint8_t *payload, size_t len)
@@ -186,14 +187,17 @@ void websocket_event_handler(uint8_t num, WStype_t type, uint8_t *payload, size_
             switch(query_type)
             {
                 case QUERY_STATUS:
+                    LOG_INFO("Enqueueing 'TX_DATA_STATUS'\n");
                     queue_enqueue(&uart_queue_tx, TX_DATA_STATUS);
                 break;
 
                 case QUERY_MAIN_OUTPUT_TOGGLE:
+                    LOG_INFO("Enqueueing 'TX_DATA_MAIN_OUTPUT_TOGGLE'\n");
                     queue_enqueue(&uart_queue_tx, TX_DATA_MAIN_OUTPUT_TOGGLE);
                 break;
 
                 case QUERY_TIMER_TOGGLE:
+                    LOG_INFO("Enqueueing 'TX_DATA_TIMER_TOGGLE'\n");
                     queue_enqueue(&uart_queue_tx, TX_DATA_TIMER_TOGGLE);
                 break;
 
@@ -211,6 +215,11 @@ void websocket_event_handler(uint8_t num, WStype_t type, uint8_t *payload, size_
                     new_timer.from_minute = (uint8_t)String(timer_data["from"]["minute"]).toInt();
                     new_timer.to_hour     = (uint8_t)String(timer_data["to"]["hour"]).toInt();
                     new_timer.to_minute   = (uint8_t)String(timer_data["to"]["minute"]).toInt();
+
+                    LOG_INFO("Enqueueing 'TX_DATA_TIMER_SET_VALUES'\n");
+                    LOG_INFO("With values: %02d %02d  %02d %02d\n",
+                                new_timer.from_hour, new_timer.from_minute,
+                                new_timer.to_hour, new_timer.to_minute);
 
                     queue_enqueue(&uart_queue_tx, TX_DATA_TIMER_SET_VALUES);
                     queue_enqueue(&uart_queue_tx, new_timer.from_hour);
@@ -325,20 +334,20 @@ void uart_rx_handler(void)
 {
     String data_as_json;
     uint8_t buffer_aux[4];
-    uart_rx_data_e rx_data_type = (uart_rx_data_e)queue_peek(&uart_queue_rx);
-    /* 
+
+    /*
     uart_rx_data_e rx_data_type = (uart_rx_data_e)queue_dequeue(&uart_queue_rx);
     */
 
+    uint8_t rx_data_type = queue_peek(&uart_queue_rx);
+
     // Wait for additional data to arrive
-    if ((rx_data_type == RX_DATA_STATUS_OK) && (8 >= queue_count(&uart_queue_rx)))
+    if ((rx_data_type == RX_DATA_STATUS_OK) && (queue_count(&uart_queue_rx) < 10))
     {
         return;
     }
-    else
-    {
-        queue_dequeue(&uart_queue_tx);
-    }
+
+    queue_dequeue(&uart_queue_rx);
 
     switch(rx_data_type)
     {
@@ -369,7 +378,8 @@ void uart_rx_handler(void)
             // TODO: Use sendTXT instead of braodcastTXT; resolve socket numb
             // web_socket.sendTXT(num, data_as_json);
             data_as_json = JSON.stringify(data);
-            web_socket.broadcastTXT(data_as_json);
+            web_socket.broadcastTXT(data_as_json.c_str());
+            LOG_INFO("%s\n", data_as_json.c_str());
 
         break;
         case RX_DATA_MAIN_OUTPUT_TOGGLE_OK:
@@ -403,10 +413,7 @@ void uart_rx_handler(void)
 
 void setup()
 {
-    pinMode(REMOTE_LED_PIN, OUTPUT);
-    digitalWrite(REMOTE_LED_PIN, LOW);
     Serial.begin(115200);
-    Serial.write("\n\r\n\r\n\r");
 
     delay(2000);
     LOG_INFO("Booting");
@@ -415,6 +422,9 @@ void setup()
         delay(150);
     }
     LOG("\n");
+
+    pinMode(REMOTE_LED_PIN, OUTPUT);
+    digitalWrite(REMOTE_LED_PIN, LOW);
 
     remote_devices = 0;
 
@@ -444,9 +454,14 @@ void setup()
 
 void loop()
 {
-    while (Serial.available() > 0)
+    if (Serial.available() > 0)
     {
-        queue_enqueue(&uart_queue_rx, Serial.read());
+        int16_t byte = Serial.read();
+
+        if (byte >= 0)
+        {
+            queue_enqueue(&uart_queue_rx, byte);
+        }
     }
 
     if (!queue_is_empty(&uart_queue_rx))
@@ -454,9 +469,12 @@ void loop()
         uart_rx_handler();
     }
 
-    while (!queue_is_empty(&uart_queue_tx) && (Serial.availableForWrite() > 0))
+    if (!queue_is_empty(&uart_queue_tx))
     {
-        Serial.write(queue_dequeue(&uart_queue_tx));
+        uint8_t value = queue_dequeue(&uart_queue_tx);
+        LOG_INFO("Sending byte 0x%2X...\n", value);
+        Serial.write(value);
+        LOG("\n");
     }
 
     web_socket.loop();

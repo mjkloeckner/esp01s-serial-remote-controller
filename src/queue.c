@@ -14,15 +14,16 @@ void queue_init(queue_t *queue)
 
 void queue_enqueue(queue_t *queue, uint8_t value)
 {
-    queue->count++;
-    queue->data[queue->head++] = value;
+    queue->data[queue->head] = value;
+    queue->count += ((queue->count == QUEUE_LEN) ? 0 : 1);
+    queue->head += ((queue->count == QUEUE_LEN) ? 0 : 1);
 }
 
 uint8_t queue_dequeue(queue_t *queue)
 {
     if (queue_is_empty(queue))
     {
-        return queue_peek(queue);
+        return 0;
     }
 
     queue->count--;
@@ -34,7 +35,7 @@ uint8_t queue_peek(queue_t *queue)
     return queue->data[queue->tail];
 }
 
-uint8_t queue_count(queue_t *queue)
+uint16_t queue_count(queue_t *queue)
 {
     return queue->count;
 }
