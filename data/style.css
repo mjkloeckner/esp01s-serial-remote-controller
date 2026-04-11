@@ -1,22 +1,134 @@
 body {
     margin: 3em auto 3em auto;
-    /* font-family: "Nimbus Sans", "Nimbus Sans L", "Helvetica", Inter; */
-    font-family: monospace;
-    font-size: 18px;
+    text-align: center;
+    font-family: "Nimbus Sans", "Nimbus Sans L", "Helvetica", Inter;
+    font-size: 20px;
+}
+
+#title {
+    padding: 0em 0.5em 0em 0.5em;
 }
 
 #main-div {
-    max-width: 640px;
+    max-width: 23em;
+    margin: auto auto;
+    padding: 0 10px;
+}
+
+table {
+    border-collapse: collapse;
+}
+
+tr {
+    vertical-align: bottom;
+    border-color: #3E3E42;
+}
+
+td {
+    width: 100%;
+}
+
+a, a:visited {
+    color: #00E;
+}
+
+h1 {
+    font-size: 36px;
+}
+
+#main-toggle-div {
+    margin-bottom: 0.5em;
+    cursor: pointer;
+    padding: 1.25em 28px 1.00em 28px;
+    border-radius: 8px;
+    border: 1px solid #E3E3E3;
+}
+
+#timer {
+    border-radius: 8px;
+    border: 1px solid #E3E3E3;
+}
+
+#timer-enable {
+    cursor: pointer;
+    padding: 27.5px 28px 16px 28px;
+}
+
+#timer-picker {
+    padding: 18px 28px 0.00em 28px;
+    font-size: 20px;
+}
+
+#timer-sep {
+    border-bottom: 1px solid #E3E3E3;
+    margin: 0 30px 0 30px;
+}
+
+#from-time, #to-time {
+    font-size: 18px;
+    padding: 2px;
+    margin: 0px;
+    border: 1px solid #E3E3E3;
+    border-radius: 5px;
+    cursor: pointer;
+    background-color: white;
+}
+
+#timer-save-div {
+    padding: 18px 30px 30px 30px;
     text-align: center;
+}
+
+#timer-save {
+    margin-right: 0px;
+    box-shadow: none;
+    border: 1px solid #E3E3E3;
+    color: black;
+    background-color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    height: 32px;
+    font-size: 14px;
+    width: 100%;
+    font-weight: bold;
+}
+
+#timer-save:active {
+  background-color: #E3E3E3;
+  border: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    #main-toggle-div:hover #main-checkbox,
+    #timer-enable:hover #timer-checkbox,
+    #from-time:hover, #to-time:hover,
+    #main-checkbox:hover, #timer-checkbox:hover,
+    #timer-save:hover {
+        border: 1px solid #999999;
+    }
+}
+
+#from-time:focus-visible,
+#to-time:focus-visible {
+    border: 1px solid #999999;
+    outline: none;
+}
+
+#buttons-div {
+    text-align: left;
     margin-left: auto;
     margin-right: auto;
-    padding: 12px;
+    font-size: 22px;
+    user-select: none;
 }
 
 #info-div {
-    border: 1px solid black;
-    border-radius: 12px;
-
+    padding: 1.75em 1em 1em 1em;
+    font-size: 16px;
+    td {
+        padding: .20em;
+        text-wrap: nowrap;
+    }
     td:nth-child(1) {
         text-align: left;
         user-select: none;
@@ -27,15 +139,122 @@ body {
     }
 }
 
+#save-button {
+    padding: 0.25em 0 0 0;
+    text-align: right;
+}
+
+#save-timer-button {
+    border: 1px solid grey;
+    border-radius: 2px;
+    text-align: center;
+    margin-top: 0.35em;
+    font-size: 16px;
+    color: black;
+    background-color: white;
+    vertical-align: bottom;
+}
+
+#main-checkbox, #timer-checkbox {
+    width: 20px;
+    height: 20px;
+    border: 1px solid #E3E3E3;
+    border-radius: 5px;
+    color: black;
+    text-align: center;
+    vertical-align: center;
+    cursor: pointer;
+    color: white;
+    svg {
+        display: none;
+    }
+}
+
+#main-checkbox[checked="1"], #timer-checkbox[checked="1"] {
+    background-color: #3584e4;
+    svg {
+        display: revert;
+    }
+}
+
+#checkmark-svg {
+    width: 14px;
+    height: 20px;
+}
+
+#main-checkbox-td, #timer-checkbox-td {
+    display: block;
+    padding: 0;
+    margin: 0;
+}
+
 @media (prefers-color-scheme: dark) {
     body {
         color: white;
         background-color: #17171A;
     }
-    a {
-        color: skyblue;
+
+    a, a:visited {
+        color: #56C8FF;
     }
-    #info-div {
-        border-color: grey;
+
+    input {
+        color-scheme: dark;
+    }
+
+    #buttons-div {
+        border: none;
+    }
+
+    #main-toggle-div, #timer {
+        background-color: #232326;
+        border: none;
+    }
+
+    #timer-sep {
+        border-bottom-color: #3E3E42;
+    }
+
+    #timer-save {
+        border-color: #999999;
+        color: white;
+        background-color: #303033;
+        border-color: #3E3E42;
+    }
+
+    #timer-save:active {
+        background-color: #3E3E42;
+        border: none;
+    }
+
+    #from-time, #to-time {
+        background-color: #303033;
+        color: white;
+        border-color: #3E3E42;
+    }
+
+    #main-checkbox, #timer-checkbox {
+        border-color: #3E3E42;
+        background-color: #303033;
+    }
+
+    #main-checkbox[checked="1"], #timer-checkbox[checked="1"] {
+        background-color: #56C8FF;
+        color: #004263;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+        #main-toggle-div:hover #main-checkbox,
+        #timer-enable:hover #timer-checkbox,
+        #from-time:hover, #to-time:hover,
+        #main-checkbox:hover, #timer-checkbox:hover,
+        #timer-save:hover {
+            border: 1px solid #828282;
+        }
+    }
+
+    #from-time:focus-visible,
+    #to-time:focus-visible {
+        border: 1px solid #828282;
     }
 }

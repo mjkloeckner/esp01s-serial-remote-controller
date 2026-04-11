@@ -1,9 +1,10 @@
-#include <Arduino.h>
 #include <Arduino_JSON.h>
 #include <ESP8266WiFi.h>
 #include <WebSocketsServer.h>
 #include <ESP8266WebServer.h>
 #include <LittleFS.h>
+
+#include "queue.h"
 
 #ifndef LED_BUILTIN
 #define LED_BUILTIN    2
@@ -12,7 +13,7 @@
 #define REMOTE_LED_PIN 2
 #define WIFI_SSID      "abcdefgh"
 #define WIFI_PASSWD    "12345678"
-#define LOG_ENABLE     true
+#define LOG_ENABLE     false
 
 #if true == LOG_ENABLE
 #define LOG(fmt, ...) do {             \
@@ -27,13 +28,42 @@
 #define LOG_ERROR(fmt, ...) LOG("[ERROR] " fmt, ##__VA_ARGS__)
 
 typedef enum {
-    QUERY_STATUS
-} query_t;
+    TX_DATA_STATUS             = 'A',
+    TX_DATA_MAIN_OUTPUT_TOGGLE = 'B',
+    TX_DATA_TIMER_TOGGLE       = 'C',
+    TX_DATA_TIMER_SET_VALUES   = 'D',
+} uart_tx_data_e;
 
-ESP8266WebServer server(80);
-WebSocketsServer web_socket = WebSocketsServer(81);
-static uint8_t remote_devices;
-JSONVar data;
+typedef enum {
+    RX_DATA_STATUS_OK             = 'A',
+    RX_DATA_MAIN_OUTPUT_TOGGLE_OK = 'B',
+    RX_DATA_TIMER_TOGGLE_OK       = 'C',
+    RX_DATA_TIMER_SET_VALUES_OK   = 'D'
+} uart_rx_data_e;
+
+typedef enum {
+    QUERY_STATUS = 0,
+    QUERY_MAIN_OUTPUT_TOGGLE,
+    QUERY_TIMER_TOGGLE,
+    QUERY_TIMER_SET_VALUES
+} query_type_e;
+
+typedef struct {
+    uint8_t enabled;
+    uint8_t from_hour;
+    uint8_t from_minute;
+    uint8_t to_hour;
+    uint8_t to_minute;
+} timer_param_t;
+
+static ESP8266WebServer server(80);
+static WebSocketsServer web_socket = WebSocketsServer(81);
+static uint8_t remote_devices, main_output_enabled;
+uint32_t t, system_time_dt;
+static time_t system_time;
+static timer_param_t timer, new_timer;
+static JSONVar data, timer_data;
+static queue_t uart_queue_tx, uart_queue_rx;
 
 void setup_wifi();
 void setup_websocket();
@@ -41,12 +71,13 @@ void setup_webserver();
 void setup_fs();
 
 void websocket_event_handler(uint8_t num, WStype_t type, uint8_t *payload, size_t len);
-int webserver_get_file(String path, String &return_page);
+uint16_t webserver_get_file(String path, String &return_page);
 String webserver_file_content_type(String path);
 void webserver_file_handler();
 void webserver_handle_root();
 
 void update_data();
+void update_timer_data();
 
 void setup_wifi()
 {
@@ -95,11 +126,37 @@ void setup_fs()
     LOG_INFO("LittleFS started %d bytes used\n", fs_info.usedBytes);
 }
 
+void webserver_update_all_clients_checkbox()
+{
+    JSONVar output_data;
+    String output_data_as_json;
+
+    output_data["type"] = "cb";
+    output_data["main-output-enabled"] = String(main_output_enabled);
+    output_data["timer"]["enabled"] = String(timer.enabled);
+
+    output_data_as_json = JSON.stringify(output_data);
+    web_socket.broadcastTXT(output_data_as_json);
+}
+
+void webserver_update_all_clients_timer_values()
+{
+    JSONVar output_data;
+    String output_data_as_json;
+
+    update_timer_data();
+    output_data["type"] = "timer";
+    output_data["timer"] = timer_data;
+
+    // web_socket.broadcastTXT(JSON.stringify(output_data).c_str());
+    output_data_as_json = JSON.stringify(output_data);
+    web_socket.broadcastTXT(output_data_as_json);
+}
+
 void websocket_event_handler(uint8_t num, WStype_t type, uint8_t *payload, size_t len)
 {
-    String data_as_json;
     IPAddress ip;
-    uint8_t query_type;
+    query_type_e query_type;
 
     switch(type)
     {
@@ -123,18 +180,47 @@ void websocket_event_handler(uint8_t num, WStype_t type, uint8_t *payload, size_
 
         case WStype_TEXT:
 
-            query_type = *payload - '0';
+            query_type = (query_type_e)(*payload - '0');
+            LOG_INFO("Received query_type '%s'\n", payload);
+
             switch(query_type)
             {
                 case QUERY_STATUS:
-                    update_data();
-                    data["type"] = "all";
-                    data_as_json = JSON.stringify(data);
-                    web_socket.sendTXT(num, data_as_json);
+                    queue_enqueue(&uart_queue_tx, TX_DATA_STATUS);
+                break;
+
+                case QUERY_MAIN_OUTPUT_TOGGLE:
+                    queue_enqueue(&uart_queue_tx, TX_DATA_MAIN_OUTPUT_TOGGLE);
+                break;
+
+                case QUERY_TIMER_TOGGLE:
+                    queue_enqueue(&uart_queue_tx, TX_DATA_TIMER_TOGGLE);
+                break;
+
+                case QUERY_TIMER_SET_VALUES:
+                    payload++; // skip query type
+                    timer_data = JSON.parse((char *)payload);
+
+                    if(JSON.typeof(timer_data) == "undefined")
+                    {
+                        LOG_ERROR("QUERY_TIMER_SET_VALUES: Parsing payload failed!");
+                        break;
+                    }
+
+                    new_timer.from_hour   = (uint8_t)String(timer_data["from"]["hour"]).toInt();
+                    new_timer.from_minute = (uint8_t)String(timer_data["from"]["minute"]).toInt();
+                    new_timer.to_hour     = (uint8_t)String(timer_data["to"]["hour"]).toInt();
+                    new_timer.to_minute   = (uint8_t)String(timer_data["to"]["minute"]).toInt();
+
+                    queue_enqueue(&uart_queue_tx, TX_DATA_TIMER_SET_VALUES);
+                    queue_enqueue(&uart_queue_tx, new_timer.from_hour);
+                    queue_enqueue(&uart_queue_tx, new_timer.from_minute);
+                    queue_enqueue(&uart_queue_tx, new_timer.to_hour);
+                    queue_enqueue(&uart_queue_tx, new_timer.to_minute);
+
                 break;
 
                 default:
-                    LOG_INFO(" %s\n", payload);
                 break;
             }
 
@@ -152,7 +238,8 @@ void websocket_event_handler(uint8_t num, WStype_t type, uint8_t *payload, size_
     }
 }
 
-int webserver_get_file(String path, String &return_page)
+// TODO: This should return server response codes, i.e. 200, 404, etc
+uint16_t webserver_get_file(String path, String &return_page)
 {
     if (LittleFS.exists(path))
     {
@@ -197,7 +284,7 @@ void webserver_file_handler()
 {
     String path = server.uri();
     String requested_page;
-    int response_code;
+    uint16_t response_code;
     response_code = webserver_get_file(path, requested_page) ? 404 : 200;
     server.send(response_code, webserver_file_content_type(path), requested_page);
 }
@@ -205,17 +292,113 @@ void webserver_file_handler()
 void webserver_handle_root()
 {
     String index_page;
-    int response_code = 200;
+    uint16_t response_code = 200;
     if (webserver_get_file("index.html", index_page)) {
         response_code = 404;
     }
     server.send(response_code, "text/html", index_page.c_str());
 }
 
+String left_pad(uint8_t n) {
+    return n < 10 ? "0" + String(n) : String(n);
+}
+
+void update_timer_data() {
+    timer_data["enabled"]        = String(timer.enabled);
+    timer_data["from"]["hour"]   = left_pad(timer.from_hour);
+    timer_data["from"]["minute"] = left_pad(timer.from_minute);
+    timer_data["to"]["hour"]     = left_pad(timer.to_hour);
+    timer_data["to"]["minute"]   = left_pad(timer.to_minute);
+}
+
 void update_data() {
-    data["system-ip-addr"] = WiFi.localIP().toString();
-    data["wifi-ssid"]      = WIFI_SSID;
-    data["wifi-rssi"]      = WiFi.RSSI();
+    data["main-output-enabled"] = String(main_output_enabled);
+    data["system-ip-addr"]      = WiFi.localIP().toString();
+    data["system-time"]         = (uint32_t)system_time;
+    data["wifi-ssid"]           = WIFI_SSID;
+    data["wifi-rssi"]           = WiFi.RSSI();
+    update_timer_data();
+    data["timer"] = timer_data;
+}
+
+void uart_rx_handler(void)
+{
+    String data_as_json;
+    uint8_t buffer_aux[4];
+    uart_rx_data_e rx_data_type = (uart_rx_data_e)queue_peek(&uart_queue_rx);
+    /* 
+    uart_rx_data_e rx_data_type = (uart_rx_data_e)queue_dequeue(&uart_queue_rx);
+    */
+
+    // Wait for additional data to arrive
+    if ((rx_data_type == RX_DATA_STATUS_OK) && (8 >= queue_count(&uart_queue_rx)))
+    {
+        return;
+    }
+    else
+    {
+        queue_dequeue(&uart_queue_tx);
+    }
+
+    switch(rx_data_type)
+    {
+        case RX_DATA_STATUS_OK:
+
+            main_output_enabled = queue_dequeue(&uart_queue_rx);
+
+            // LSB first
+            buffer_aux[0] = queue_dequeue(&uart_queue_rx);
+            buffer_aux[1] = queue_dequeue(&uart_queue_rx);
+            buffer_aux[2] = queue_dequeue(&uart_queue_rx);
+            buffer_aux[3] = queue_dequeue(&uart_queue_rx);
+
+            system_time = ((uint32_t)buffer_aux[3] << 24) |
+                          ((uint32_t)buffer_aux[2] << 16) |
+                          ((uint32_t)buffer_aux[1] << 8)  |
+                          ((uint32_t)buffer_aux[0]);
+
+            timer.enabled     = queue_dequeue(&uart_queue_rx);
+            timer.from_hour   = queue_dequeue(&uart_queue_rx);
+            timer.from_minute = queue_dequeue(&uart_queue_rx);
+            timer.to_hour     = queue_dequeue(&uart_queue_rx);
+            timer.to_minute   = queue_dequeue(&uart_queue_rx);
+
+            update_data();
+            data["type"] = "all";
+
+            // TODO: Use sendTXT instead of braodcastTXT; resolve socket numb
+            // web_socket.sendTXT(num, data_as_json);
+            data_as_json = JSON.stringify(data);
+            web_socket.broadcastTXT(data_as_json);
+
+        break;
+        case RX_DATA_MAIN_OUTPUT_TOGGLE_OK:
+
+            main_output_enabled = !main_output_enabled;
+            webserver_update_all_clients_checkbox();
+
+        break;
+
+        case RX_DATA_TIMER_TOGGLE_OK:
+
+            timer.enabled = !timer.enabled;
+            webserver_update_all_clients_checkbox();
+
+        break;
+
+        case RX_DATA_TIMER_SET_VALUES_OK:
+
+            timer.from_hour   = new_timer.from_hour;
+            timer.from_minute = new_timer.from_minute;
+            timer.to_hour     = new_timer.to_hour;
+            timer.to_minute   = new_timer.to_minute;
+            webserver_update_all_clients_timer_values();
+
+        break;
+
+        default:
+        break;
+    }
 }
 
 void setup()
@@ -223,6 +406,7 @@ void setup()
     pinMode(REMOTE_LED_PIN, OUTPUT);
     digitalWrite(REMOTE_LED_PIN, LOW);
     Serial.begin(115200);
+    Serial.write("\n\r\n\r\n\r");
 
     delay(2000);
     LOG_INFO("Booting");
@@ -234,6 +418,18 @@ void setup()
 
     remote_devices = 0;
 
+    timer.enabled = 0;
+    timer.from_hour = 12;
+    timer.from_minute = 0;
+    timer.to_hour = 0;
+    timer.to_minute = 0;
+
+    main_output_enabled = 0;
+    t = 0;
+    system_time_dt = 0;
+
+    time(&system_time); // read the current time
+
     setup_wifi();
     setup_fs();
     setup_websocket();
@@ -241,10 +437,28 @@ void setup()
 
     LOG_INFO("Setup done\n");
     digitalWrite(REMOTE_LED_PIN, HIGH);
+
+    queue_init(&uart_queue_tx);
+    queue_init(&uart_queue_rx);
 }
 
 void loop()
 {
+    while (Serial.available() > 0)
+    {
+        queue_enqueue(&uart_queue_rx, Serial.read());
+    }
+
+    if (!queue_is_empty(&uart_queue_rx))
+    {
+        uart_rx_handler();
+    }
+
+    while (!queue_is_empty(&uart_queue_tx) && (Serial.availableForWrite() > 0))
+    {
+        Serial.write(queue_dequeue(&uart_queue_tx));
+    }
+
     web_socket.loop();
     server.handleClient();
 }

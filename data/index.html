@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>ESP8266 Remote Panel</title>
+        <title>ESP8266 Web Server</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="icon" href="data:,">
         <link rel="stylesheet" type="text/css" href="style.css">
@@ -10,6 +10,85 @@
     <body>
         <div id="main-div">
             <h1 id="title">ESP8266 Remote Panel</h1>
+            <div id="buttons-div">
+                <div id="main-toggle-div" onclick="handle_click('main-toggle')">
+                    <table>
+                        <tr style="vertical-align: bottom;">
+                            <td>
+                                Main output enabled
+                            </td>
+                            <td id="main-checkbox-td">
+                                <div id="main-checkbox" checked="">
+                                    <svg id="checkmark-svg"
+                                     version="1.0"
+                                     xmlns="http://www.w3.org/2000/svg"
+                                     viewBox="0 0 64.000000 64.000000"
+                                     preserveAspectRatio="xMidYMid meet">
+                                        <g transform="translate(0.000000,64.000000) scale(0.100000,-0.100000)"
+                                        fill="currentColor" stroke="currentColor">
+                                        <path d="M380 419 l-142 -211 -67 66 c-38 38 -75 66 -87 66 -25 0 -84 -60 -84
+                                        -86 0 -11 45 -65 113 -132 121 -121 145 -132 184 -89 49 54 343 502 343 523 0
+                                        27 -62 74 -96 74 -16 0 -53 -48 -164 -211z"/>
+                                        </g>
+                                    </svg>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                <div id="timer">
+                    <div id="timer-enable" onclick="handle_click('timer-toggle')">
+                        <table>
+                            <tr>
+                                <td>
+                                    Timer enabled
+                                </td>
+                                <td id="timer-checkbox-td">
+                                    <div id="timer-checkbox" checked="">
+                                        <svg id="checkmark-svg"
+                                         version="1.0"
+                                         xmlns="http://www.w3.org/2000/svg"
+                                         viewBox="0 0 64.000000 64.000000"
+                                         preserveAspectRatio="xMidYMid meet">
+                                            <g transform="translate(0.000000,64.000000) scale(0.100000,-0.100000)"
+                                            fill="currentColor" stroke="currentColor">
+                                            <path d="M380 419 l-142 -211 -67 66 c-38 38 -75 66 -87 66 -25 0 -84 -60 -84
+                                            -86 0 -11 45 -65 113 -132 121 -121 145 -132 184 -89 49 54 343 502 343 523 0
+                                            27 -62 74 -96 74 -16 0 -53 -48 -164 -211z"/>
+                                            </g>
+                                        </svg>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div id="timer-sep"></div>
+                    <div id="timer-picker">
+                        <table>
+                            <tr>
+                                <td>
+                                    From
+                                </td>
+                                <td>
+                                    <input id="from-time" type="time" value="18:00"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    Until
+                                </td>
+                                <td>
+                                    <input id="to-time" type="time" value="00:00"/>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div id="timer-save-div">
+                        <input type="button" value="Save" id="timer-save">
+                    </div>
+                </div>
+            </div>
+
             <div id="info-div">
                 <table style="width: 100%; padding: 1em;">
                     <tr>
@@ -34,6 +113,14 @@
                         </td>
                         <td>
                             <a id="system-ip-addr"></a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            System time
+                        </td>
+                        <td>
+                            <div id="system-time"></div>
                         </td>
                     </tr>
                 </table>
