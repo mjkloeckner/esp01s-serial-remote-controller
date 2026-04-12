@@ -18,7 +18,26 @@ adapter. The ESP must be in programming mode, this is achived by holding
 GPIO0 low during MCU initilization. Once the ESP is ready, flash the firmware
 using PlatformIO console tools.
 
-First flash the main firmware.
+At the moment, this firmware does not implement a Wi-Fi manager, so the firmware
+must be re-flashed whenever the Wi-Fi SSID or password changes. To configure the
+Wi-Fi credentials, environment variables are used during firmware compilation.
+
+To set the environment variables, run the following commands in the same terminal
+session that will be used to compile and flash the firmware.
+
+```console
+$ export WIFI_SSID="hello-world"
+$ export WIFI_PASSWD="12345678"
+```
+
+Alternatively, the Wi-Fi credentials can be defined in the `src/main.cpp` file.
+
+```c
+#define WIFI_SSID "hello-world"
+#define WIFI_PASSWD "12345678"
+```
+
+After setting the credentials, flash the main firmware to the ESP.
 
 ```console
 $ pio run -t upload
