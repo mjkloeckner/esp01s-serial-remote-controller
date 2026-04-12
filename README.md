@@ -6,7 +6,7 @@ microcontroller that connects via UART.
 
 <div style="text-align: center;">
     <img src="img/esp01s.jpg" style="padding: 10px;" width="35%">
-    <img src="img/esp01s-pinout.jpg" style="padding: 10px;" width="50%">
+    <img src="img/esp01s-pinout.jpg" style="padding: 10px;" width="55%">
     <p align="center"><em>ESP-01S Module </em></p>
 </div>
 
