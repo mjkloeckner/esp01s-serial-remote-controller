@@ -392,7 +392,7 @@ void uart_rx_handler(void)
 
     uint8_t rx_data_type = queue_peek(&uart_queue_rx);
 
-    if ((rx_data_type == RX_DATA_STATUS_OK) && (queue_count(&uart_queue_rx) < 10))
+    if ((rx_data_type == RX_DATA_STATUS_OK) && (queue_count(&uart_queue_rx) < 13))
     {
         // Wait for additional data to arrive
         return;
