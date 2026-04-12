@@ -46,7 +46,7 @@
                                     Temperatura actual
                                 </td>
                                 <td id=main-now-value>
-                                    0
+                                    -°C
                                 </td>
                             </tr>
                         </table>
@@ -57,9 +57,8 @@
                                 <td>
                                     Temperatura establecida
                                 </td>
-                                <td>
-                                    <input id="main-set-value" type="number"
-                                    value="25" min=0 max="80"/>
+                                <td id="main-set-value-td">
+                                    <input id="main-set-value" type="number" value="25" min=0 max="80"/>°C
                                 </td>
                             </tr>
                         </table>
@@ -128,7 +127,7 @@
                             WiFi SSID
                         </td>
                         <td>
-                            <div id="wifi-ssid"></div>
+                            <div id="wifi-ssid">-</div>
                         </td>
                     </tr>
                     <tr>
@@ -136,7 +135,7 @@
                             WiFi RSSI
                         </td>
                         <td>
-                            <div id="wifi-rssi"></div>
+                            <div id="wifi-rssi">-</div>
                         </td>
                     </tr>
                     <tr>
@@ -144,7 +143,7 @@
                             Direccion IP local
                         </td>
                         <td>
-                            <a id="system-ip-addr"></a>
+                            <a id="system-ip-addr">-</a>
                         </td>
                     </tr>
                     <tr>
@@ -152,7 +151,7 @@
                             Reloj del sistema
                         </td>
                         <td>
-                            <div id="system-time"></div>
+                            <div id="system-time">-</div>
                         </td>
                     </tr>
                 </table>
