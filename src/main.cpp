@@ -11,9 +11,15 @@
 #endif
 
 #define REMOTE_LED_PIN 2
-#define WIFI_SSID      "abcdefgh"
-#define WIFI_PASSWD    "12345678"
 #define LOG_ENABLE     false
+
+#ifndef WIFI_SSID
+#define WIFI_SSID "abcdefgh"
+#endif
+
+#ifndef WIFI_PASSWD
+#define WIFI_PASSWD "12345678"
+#endif
 
 #if true == LOG_ENABLE
 #define LOG(fmt, ...) do {             \
@@ -32,20 +38,25 @@ typedef enum {
     TX_DATA_MAIN_OUTPUT_TOGGLE = 'B',
     TX_DATA_TIMER_TOGGLE       = 'C',
     TX_DATA_TIMER_SET_VALUES   = 'D',
+    TX_DATA_TEMP_STATUS        = 'E',
+    TX_DATA_TEMP_SET           = 'F'
 } uart_tx_data_e;
 
 typedef enum {
     RX_DATA_STATUS_OK             = 'A',
     RX_DATA_MAIN_OUTPUT_TOGGLE_OK = 'B',
     RX_DATA_TIMER_TOGGLE_OK       = 'C',
-    RX_DATA_TIMER_SET_VALUES_OK   = 'D'
+    RX_DATA_TIMER_SET_VALUES_OK   = 'D',
+    RX_DATA_TEMP_STATUS_OK        = 'E',
+    RX_DATA_TEMP_SET_OK           = 'F'
 } uart_rx_data_e;
 
 typedef enum {
     QUERY_STATUS = 0,
     QUERY_MAIN_OUTPUT_TOGGLE,
     QUERY_TIMER_TOGGLE,
-    QUERY_TIMER_SET_VALUES
+    QUERY_TIMER_SET_VALUES,
+    QUERY_TEMP_SET
 } query_type_e;
 
 typedef struct {
@@ -59,11 +70,11 @@ typedef struct {
 ESP8266WebServer server(80);
 WebSocketsServer web_socket = WebSocketsServer(81);
 uint8_t remote_devices, main_output_enabled;
-uint32_t t, system_time_dt;
 time_t system_time;
 timer_param_t timer, new_timer;
 JSONVar data, timer_data;
 queue_t uart_queue_tx, uart_queue_rx;
+int16_t temp_now, temp_now_new, temp_set_point, temp_set_point_new;
 
 void setup_wifi();
 void setup_websocket();
@@ -154,6 +165,34 @@ void webserver_update_all_clients_timer_values()
     web_socket.broadcastTXT(output_data_as_json.c_str());
 }
 
+void webserver_update_all_clients_temp_now_value()
+{
+    JSONVar output_data;
+    String output_data_as_json;
+
+    output_data["type"] = "temp-now-values";
+    output_data["temp-now"] = temp_now;
+
+    // web_socket.broadcastTXT(JSON.stringify(output_data).c_str());
+    output_data_as_json = JSON.stringify(output_data);
+    web_socket.broadcastTXT(output_data_as_json.c_str());
+}
+
+
+void webserver_update_all_clients_temp_values()
+{
+    JSONVar output_data;
+    String output_data_as_json;
+
+    output_data["type"] = "temp-values";
+    output_data["temp-now"] = temp_now;
+    output_data["temp-set"] = temp_set_point;
+
+    // web_socket.broadcastTXT(JSON.stringify(output_data).c_str());
+    output_data_as_json = JSON.stringify(output_data);
+    web_socket.broadcastTXT(output_data_as_json.c_str());
+}
+
 void websocket_event_handler(uint8_t num, WStype_t type, uint8_t *payload, size_t len)
 {
     IPAddress ip;
@@ -227,6 +266,16 @@ void websocket_event_handler(uint8_t num, WStype_t type, uint8_t *payload, size_
                     queue_enqueue(&uart_queue_tx, new_timer.to_hour);
                     queue_enqueue(&uart_queue_tx, new_timer.to_minute);
 
+                break;
+
+                case QUERY_TEMP_SET: {
+                    payload++; // skip query type
+                    JSONVar temp_data;
+                    temp_data = JSON.parse((char *)payload);
+                    temp_set_point_new = (uint8_t)String(temp_data["temp_set_point_new"]).toInt();
+                    queue_enqueue(&uart_queue_tx, TX_DATA_TEMP_SET);
+                    queue_enqueue(&uart_queue_tx, (uint8_t)temp_set_point_new);
+                }
                 break;
 
                 default:
@@ -328,6 +377,8 @@ void update_data() {
     data["wifi-rssi"]           = WiFi.RSSI();
     update_timer_data();
     data["timer"] = timer_data;
+    data["temp-now"] = temp_now;
+    data["temp-set"] = temp_set_point;
 }
 
 void uart_rx_handler(void)
@@ -341,9 +392,15 @@ void uart_rx_handler(void)
 
     uint8_t rx_data_type = queue_peek(&uart_queue_rx);
 
-    // Wait for additional data to arrive
     if ((rx_data_type == RX_DATA_STATUS_OK) && (queue_count(&uart_queue_rx) < 10))
     {
+        // Wait for additional data to arrive
+        return;
+    }
+
+    if ((rx_data_type == RX_DATA_TEMP_STATUS_OK) && (queue_count(&uart_queue_rx) < 2))
+    {
+        // Wait for additional data to arrive
         return;
     }
 
@@ -371,6 +428,9 @@ void uart_rx_handler(void)
             timer.from_minute = queue_dequeue(&uart_queue_rx);
             timer.to_hour     = queue_dequeue(&uart_queue_rx);
             timer.to_minute   = queue_dequeue(&uart_queue_rx);
+
+            temp_now       = queue_dequeue(&uart_queue_rx);
+            temp_set_point = queue_dequeue(&uart_queue_rx);
 
             update_data();
             data["type"] = "all";
@@ -406,7 +466,28 @@ void uart_rx_handler(void)
 
         break;
 
+        case RX_DATA_TEMP_SET_OK:
+
+            temp_set_point = temp_set_point_new;
+            webserver_update_all_clients_temp_values();
+
+        break;
+
+        case RX_DATA_TEMP_STATUS_OK:
+
+            temp_now_new = queue_dequeue(&uart_queue_rx);
+            temp_set_point = queue_dequeue(&uart_queue_rx); // discard value
+
+            if (temp_now_new != temp_now)
+            {
+                temp_now = temp_now_new;
+                webserver_update_all_clients_temp_now_value();
+            }
+
+        break;
+
         default:
+            queue_dequeue(&uart_queue_rx);
         break;
     }
 }
@@ -435,8 +516,11 @@ void setup()
     timer.to_minute = 0;
 
     main_output_enabled = 0;
-    t = 0;
-    system_time_dt = 0;
+
+    temp_now = 0;
+    temp_now_new = 0;
+    temp_set_point = 0;
+    temp_set_point_new = 0;
 
     time(&system_time); // read the current time
 
@@ -454,13 +538,13 @@ void setup()
 
 void loop()
 {
-    if (Serial.available() > 0)
+    while (Serial.available() > 0)
     {
         int16_t byte = Serial.read();
 
         if (byte >= 0)
         {
-            queue_enqueue(&uart_queue_rx, byte);
+            queue_enqueue(&uart_queue_rx, (uint8_t)byte);
         }
     }
 
@@ -469,10 +553,10 @@ void loop()
         uart_rx_handler();
     }
 
-    if (!queue_is_empty(&uart_queue_tx))
+    while (!queue_is_empty(&uart_queue_tx))
     {
         uint8_t value = queue_dequeue(&uart_queue_tx);
-        LOG_INFO("Sending byte 0x%2X...\n", value);
+        LOG_INFO("Sending byte 0x%02X...\n", value);
         Serial.write(value);
         LOG("\n");
     }

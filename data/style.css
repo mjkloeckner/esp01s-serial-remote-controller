@@ -36,22 +36,58 @@ h1 {
     font-size: 36px;
 }
 
-#main-toggle-div {
+#main {
+    /*
     margin-bottom: 0.5em;
     cursor: pointer;
     padding: 1.25em 28px 1.00em 28px;
     border-radius: 8px;
     border: 1px solid #E3E3E3;
+    */
 }
 
-#timer {
+#main, #timer {
     border-radius: 8px;
     border: 1px solid #E3E3E3;
 }
 
+#timer {
+    margin-top: 1em;
+}
+
+#main-set,
+#main-toggle,
 #timer-enable {
     cursor: pointer;
-    padding: 27.5px 28px 16px 28px;
+}
+
+#main-now,
+#main-set {
+    font-size: 20px;
+}
+
+#main-now-value {
+    font-family: monospace;
+}
+
+#timer-enable {
+    padding: 28px 28px 12px 28px;
+}
+
+#main-toggle {
+    padding: 28px 28px 12px 28px;
+}
+
+#main-now {
+    padding: 18px 28px 2px 28px;
+}
+
+#main-sep {
+    padding: 0px 28px 0px 28px;
+}
+
+#main-set {
+    padding: 0px 28px 0px 28px;
 }
 
 #timer-picker {
@@ -59,7 +95,7 @@ h1 {
     font-size: 20px;
 }
 
-#timer-sep {
+#timer-sep, #main-sep {
     border-bottom: 1px solid #E3E3E3;
     margin: 0 30px 0 30px;
 }
@@ -74,12 +110,12 @@ h1 {
     background-color: white;
 }
 
-#timer-save-div {
+#timer-save-div, #main-save-div {
     padding: 18px 30px 30px 30px;
     text-align: center;
 }
 
-#timer-save {
+#timer-save, #main-save {
     margin-right: 0px;
     box-shadow: none;
     border: 1px solid #E3E3E3;
@@ -88,28 +124,54 @@ h1 {
     border-radius: 5px;
     cursor: pointer;
     height: 32px;
-    font-size: 14px;
+    font-size: 16px;
     width: 100%;
-    font-weight: bold;
+    font-weight: normal;
 }
 
-#timer-save:active {
+#timer-save:active, #main-save:active {
   background-color: #E3E3E3;
   border: none;
 }
 
+#main-set-value {
+    font-size: 18px;
+    font-weight: normal;
+    font-family: monospace;
+    width: 50px;
+    border: 1px solid #E3E3E3;
+    border-radius: 5px;
+    padding: 2px;
+    font-size: 18px;
+    height: 22px;
+
+    /*
+    margin: 0px;
+    border: 1px solid #E3E3E3;
+    cursor: pointer;
+
+    margin-right: 0px;
+    box-shadow: none;
+    background-color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    */
+}
+
 @media (hover: hover) and (pointer: fine) {
-    #main-toggle-div:hover #main-checkbox,
+    #main-toggle:hover #main-checkbox,
     #timer-enable:hover #timer-checkbox,
     #from-time:hover, #to-time:hover,
     #main-checkbox:hover, #timer-checkbox:hover,
-    #timer-save:hover {
+    #main-set-value:hover,
+    #timer-save:hover, #main-save:hover {
         border: 1px solid #999999;
     }
 }
 
 #from-time:focus-visible,
-#to-time:focus-visible {
+#to-time:focus-visible,
+#main-set-value:focus-visible {
     border: 1px solid #999999;
     outline: none;
 }
@@ -206,28 +268,28 @@ h1 {
         border: none;
     }
 
-    #main-toggle-div, #timer {
+    #main, #timer {
         background-color: #232326;
         border: none;
     }
 
-    #timer-sep {
+    #timer-sep, #main-sep {
         border-bottom-color: #3E3E42;
     }
 
-    #timer-save {
+    #timer-save, #main-save {
         border-color: #999999;
         color: white;
         background-color: #303033;
         border-color: #3E3E42;
     }
 
-    #timer-save:active {
+    #timer-save:active, #main-save:active {
         background-color: #3E3E42;
         border: none;
     }
 
-    #from-time, #to-time {
+    #from-time, #to-time, #main-set-value {
         background-color: #303033;
         color: white;
         border-color: #3E3E42;
@@ -244,17 +306,18 @@ h1 {
     }
 
     @media (hover: hover) and (pointer: fine) {
-        #main-toggle-div:hover #main-checkbox,
+        #main-toggle:hover #main-checkbox,
         #timer-enable:hover #timer-checkbox,
         #from-time:hover, #to-time:hover,
         #main-checkbox:hover, #timer-checkbox:hover,
-        #timer-save:hover {
+        #timer-save:hover, #main-save:hover {
             border: 1px solid #828282;
         }
     }
 
     #from-time:focus-visible,
-    #to-time:focus-visible {
+    #to-time:focus-visible,
+    #main-set-value:focus-visible {
         border: 1px solid #828282;
     }
 }

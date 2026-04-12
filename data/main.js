@@ -2,7 +2,8 @@ var received_data;
 var main_checkbox, timer_checkbox;
 var time_div, system_ip_addr, wifi_ssid, wifi_rssi;
 var system_time, system_time_elem;
-var to_time, from_time, timer_save_button;
+var to_time, from_time, temp_now, temp_set_value;
+var temp_save_button, timer_save_button;
 
 const time_formatter = new Intl.DateTimeFormat('en-GB', {
     timeZone: 'America/Argentina/Buenos_Aires',
@@ -18,7 +19,8 @@ const query_types = {
     "QUERY_STATUS":             0,
     "QUERY_MAIN_OUTPUT_TOGGLE": 1,
     "QUERY_TIMER_TOGGLE":       2,
-    "QUERY_TIMER_SET_VALUES":   3
+    "QUERY_TIMER_SET_VALUES":   3,
+    "QUERY_TEMP_SET":           4
 }
 
 function rssi_to_percentage(rssi) {
@@ -46,6 +48,15 @@ function update_time() {
         .replaceAll(",", "") + " GMT-3";
 }
 
+function update_now_temp() {
+    temp_now.textContent = received_data["temp-now"] + "°C";
+}
+
+function update_temp() {
+    temp_now.textContent = received_data["temp-now"] + "°C";
+    temp_set_value.value = received_data["temp-set"];
+}
+
 function update_timer() {
     from_time.value = received_data["timer"]["from"]["hour"] + ":"
         + received_data["timer"]["from"]["minute"];
@@ -57,6 +68,7 @@ function update_all() {
     update_checkbox();
     update_time();
     update_timer();
+    update_temp();
 
     system_ip_addr.href = received_data["system-ip-addr"];
     system_ip_addr.innerHTML = received_data["system-ip-addr"];
@@ -82,6 +94,12 @@ function socket_onmessage_handler(event) {
             break;
         case "timer":
             update_timer();
+            break;
+        case "temp-values":
+            update_temp();
+            break;
+        case "temp-now-values":
+            update_now_temp();
             break;
         default:
             console.log("[SOCKET] received_data: type not known, updating all...");
@@ -122,6 +140,14 @@ function timer_set_time() {
     socket.send(query_types["QUERY_TIMER_SET_VALUES"] + JSON.stringify(query_json));
 }
 
+function temp_set() {
+    var query_json = new Object();
+
+    query_json.temp_set_point_new = temp_set_value.value.slice(0, 2);
+    socket.send(query_types["QUERY_TEMP_SET"] + JSON.stringify(query_json));
+}
+
+
 function query_data() {
     main_checkbox = document.getElementById("main-checkbox");
     timer_checkbox = document.getElementById("timer-checkbox");
@@ -132,6 +158,11 @@ function query_data() {
 
     from_time = document.getElementById("from-time");
     to_time = document.getElementById("to-time");
+
+    temp_now = document.getElementById("main-now-value");
+    temp_set_value = document.getElementById("main-set-value");
+    temp_save_button = document.getElementById("main-save");
+    temp_save_button.addEventListener( "click", temp_set, false);
 
     timer_save_button = document.getElementById("timer-save");
     timer_save_button.addEventListener( "click", timer_set_time, false);
