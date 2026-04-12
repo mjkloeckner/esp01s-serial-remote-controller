@@ -80,7 +80,7 @@ function update_all() {
 
 function socket_onmessage_handler(event) {
     received_data = JSON.parse(event.data);
-    console.log(received_data);
+    // console.log(received_data);
 
     switch(received_data["type"]) {
         case "all":
@@ -161,6 +161,12 @@ function query_data() {
 
     temp_now = document.getElementById("main-now-value");
     temp_set_value = document.getElementById("main-set-value");
+    temp_set_value.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+            temp_set_value.blur();
+        }
+    });
+
     temp_save_button = document.getElementById("main-save");
     temp_save_button.addEventListener( "click", temp_set, false);
 
