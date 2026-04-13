@@ -1,0 +1,330 @@
+body {
+    margin: 3em auto 3em auto;
+    text-align: center;
+    font-family: "Nimbus Sans", "Nimbus Sans L", "Helvetica", Inter;
+    font-size: 20px;
+}
+
+#title {
+    padding: 0em 0.5em 0em 0.5em;
+}
+
+#main-div {
+    max-width: 23em;
+    margin: auto auto;
+    padding: 0 10px;
+}
+
+table {
+    border-collapse: collapse;
+}
+
+tr {
+    vertical-align: bottom;
+    border-color: #3E3E42;
+}
+
+td {
+    width: 100%;
+}
+
+a, a:visited {
+    color: #00E;
+}
+
+h1 {
+    font-size: 36px;
+}
+
+#main {
+    /*
+    margin-bottom: 0.5em;
+    cursor: pointer;
+    padding: 1.25em 28px 1.00em 28px;
+    border-radius: 8px;
+    border: 1px solid #E3E3E3;
+    */
+}
+
+#main, #timer {
+    border-radius: 8px;
+    border: 1px solid #E3E3E3;
+}
+
+#timer {
+    margin-top: 1em;
+}
+
+#main-set,
+#main-toggle,
+#timer-enable {
+    cursor: pointer;
+}
+
+#main-now,
+#main-set {
+    font-size: 20px;
+}
+
+#main-now-value {
+    font-family: monospace;
+    white-space: nowrap;
+}
+
+#timer-enable {
+    padding: 28px 28px 12px 28px;
+}
+
+#main-toggle {
+    padding: 28px 28px 12px 28px;
+}
+
+#main-now {
+    padding: 18px 28px 2px 28px;
+}
+
+#main-sep {
+    padding: 0px 28px 0px 28px;
+}
+
+#main-set {
+    padding: 0px 28px 0px 28px;
+}
+
+#timer-picker {
+    padding: 18px 28px 0.00em 28px;
+    font-size: 20px;
+}
+
+#timer-sep, #main-sep {
+    border-bottom: 1px solid #E3E3E3;
+    margin: 0 30px 0 30px;
+}
+
+#from-time, #to-time {
+    font-family: monospace;
+    font-size: 18px;
+    padding: 2px;
+    margin: 0px;
+    border: 1px solid #E3E3E3;
+    border-radius: 5px;
+    cursor: pointer;
+    background-color: white;
+}
+
+#timer-save-div, #main-save-div {
+    padding: 18px 30px 30px 30px;
+    text-align: center;
+}
+
+#timer-save, #main-save {
+    margin-right: 0px;
+    box-shadow: none;
+    border: 1px solid #E3E3E3;
+    color: black;
+    background-color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    height: 32px;
+    font-size: 16px;
+    width: 100%;
+    font-weight: normal;
+}
+
+#timer-save:active, #main-save:active {
+  background-color: #E3E3E3;
+  border: none;
+}
+
+#main-set-value {
+    font-size: 20px;
+    font-weight: normal;
+    font-family: monospace;
+    border: 1px solid #E3E3E3;
+    border-radius: 5px;
+    padding: 3px 5px 2px 5px;
+    font-size: 20px;
+    height: 22px;
+
+    /*
+    margin: 0px;
+    border: 1px solid #E3E3E3;
+    cursor: pointer;
+    width: 20px;
+
+    margin-right: 0px;
+    box-shadow: none;
+    background-color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    */
+}
+
+#main-set-value-td {
+    font-family: monospace;
+    white-space: nowrap;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    #main-toggle:hover #main-checkbox,
+    #timer-enable:hover #timer-checkbox,
+    #from-time:hover, #to-time:hover,
+    #main-checkbox:hover, #timer-checkbox:hover,
+    #main-set-value:hover,
+    #timer-save:hover, #main-save:hover {
+        border: 1px solid #999999;
+    }
+}
+
+#from-time:focus-visible,
+#to-time:focus-visible,
+#main-set-value:focus-visible {
+    border: 1px solid #999999;
+    outline: none;
+}
+
+#buttons-div {
+    text-align: left;
+    margin-left: auto;
+    margin-right: auto;
+    font-size: 20px;
+    user-select: none;
+}
+
+#info-div {
+    padding: 1.75em 1em 1em 1em;
+    font-size: 16px;
+    td {
+        padding: .20em;
+        text-wrap: nowrap;
+    }
+    td:nth-child(1) {
+        text-align: left;
+        user-select: none;
+    }
+    td:nth-child(2) {
+        text-align: right;
+        font-family: monospace;
+    }
+}
+
+#save-button {
+    padding: 0.25em 0 0 0;
+    text-align: right;
+}
+
+#save-timer-button {
+    border: 1px solid grey;
+    border-radius: 2px;
+    text-align: center;
+    margin-top: 0.35em;
+    font-size: 16px;
+    color: black;
+    background-color: white;
+    vertical-align: bottom;
+}
+
+#main-checkbox, #timer-checkbox {
+    width: 20px;
+    height: 20px;
+    border: 1px solid #E3E3E3;
+    border-radius: 5px;
+    color: black;
+    text-align: center;
+    vertical-align: center;
+    cursor: pointer;
+    color: white;
+    svg {
+        display: none;
+    }
+}
+
+#main-checkbox[checked="1"], #timer-checkbox[checked="1"] {
+    background-color: #3584e4;
+    svg {
+        display: revert;
+    }
+}
+
+#checkmark-svg {
+    width: 14px;
+    height: 20px;
+}
+
+#main-checkbox-td, #timer-checkbox-td {
+    display: block;
+    padding: 0;
+    margin: 0;
+}
+
+@media (prefers-color-scheme: dark) {
+    body {
+        color: white;
+        background-color: #17171A;
+    }
+
+    a, a:visited {
+        color: #56C8FF;
+    }
+
+    input {
+        color-scheme: dark;
+    }
+
+    #buttons-div {
+        border: none;
+    }
+
+    #main, #timer {
+        background-color: #232326;
+        border: none;
+    }
+
+    #timer-sep, #main-sep {
+        border-bottom-color: #3E3E42;
+    }
+
+    #timer-save, #main-save {
+        border-color: #999999;
+        color: white;
+        background-color: #303033;
+        border-color: #3E3E42;
+    }
+
+    #timer-save:active, #main-save:active {
+        background-color: #3E3E42;
+        border: none;
+    }
+
+    #from-time, #to-time, #main-set-value {
+        background-color: #303033;
+        color: white;
+        border-color: #3E3E42;
+    }
+
+    #main-checkbox, #timer-checkbox {
+        border-color: #3E3E42;
+        background-color: #303033;
+    }
+
+    #main-checkbox[checked="1"], #timer-checkbox[checked="1"] {
+        background-color: #56C8FF;
+        color: #004263;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+        #main-toggle:hover #main-checkbox,
+        #timer-enable:hover #timer-checkbox,
+        #from-time:hover, #to-time:hover,
+        #main-checkbox:hover, #timer-checkbox:hover,
+        #timer-save:hover, #main-save:hover {
+            border: 1px solid #828282;
+        }
+    }
+
+    #from-time:focus-visible,
+    #to-time:focus-visible,
+    #main-set-value:focus-visible {
+        border: 1px solid #828282;
+    }
+}

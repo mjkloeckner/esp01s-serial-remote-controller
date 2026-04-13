@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Derretidor de miel</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta charset="UTF-8">
+        <link rel="icon" href="data:,">
+        <link rel="stylesheet" type="text/css" href="style.css">
+        <script type="text/javascript" src="main.js"></script>
+    </head>
+    <body>
+        <div id="main-div">
+            <h1 id="title">Derretidor de miel</h1>
+            <div id="buttons-div">
+                <div id="main">
+                    <div id="main-toggle" onclick="handle_click('main-toggle')">
+                        <table>
+                            <tr style="vertical-align: bottom;">
+                                <td>
+                                    Calefactor activo
+                                </td>
+                                <td id="main-checkbox-td">
+                                    <div id="main-checkbox" checked="">
+                                        <svg id="checkmark-svg"
+                                         version="1.0"
+                                         xmlns="http://www.w3.org/2000/svg"
+                                         viewBox="0 0 64.000000 64.000000"
+                                         preserveAspectRatio="xMidYMid meet">
+                                            <g transform="translate(0.000000,64.000000) scale(0.100000,-0.100000)"
+                                            fill="currentColor" stroke="currentColor">
+                                            <path d="M380 419 l-142 -211 -67 66 c-38 38 -75 66 -87 66 -25 0 -84 -60 -84
+                                            -86 0 -11 45 -65 113 -132 121 -121 145 -132 184 -89 49 54 343 502 343 523 0
+                                            27 -62 74 -96 74 -16 0 -53 -48 -164 -211z"/>
+                                            </g>
+                                        </svg>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div id="main-sep"></div>
+                    <div id="main-now">
+                        <table>
+                            <tr style="vertical-align: bottom;">
+                                <td>
+                                    Temperatura actual
+                                </td>
+                                <td id=main-now-value>
+                                    -°C
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div id="main-set">
+                        <table>
+                            <tr style="vertical-align: bottom;">
+                                <td>
+                                    Temperatura establecida
+                                </td>
+                                <td id="main-set-value-td">
+                                    <input id="main-set-value" type="number" value="25" min=0 max="80"/>°C
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div id="main-save-div">
+                        <input type="button" value="Aplicar" id="main-save">
+                    </div>
+                </div>
+                <div id="timer">
+                    <div id="timer-enable" onclick="handle_click('timer-toggle')">
+                        <table>
+                            <tr>
+                                <td>
+                                    Timer activo
+                                </td>
+                                <td id="timer-checkbox-td">
+                                    <div id="timer-checkbox" checked="">
+                                        <svg id="checkmark-svg"
+                                         version="1.0"
+                                         xmlns="http://www.w3.org/2000/svg"
+                                         viewBox="0 0 64.000000 64.000000"
+                                         preserveAspectRatio="xMidYMid meet">
+                                            <g transform="translate(0.000000,64.000000) scale(0.100000,-0.100000)"
+                                            fill="currentColor" stroke="currentColor">
+                                            <path d="M380 419 l-142 -211 -67 66 c-38 38 -75 66 -87 66 -25 0 -84 -60 -84
+                                            -86 0 -11 45 -65 113 -132 121 -121 145 -132 184 -89 49 54 343 502 343 523 0
+                                            27 -62 74 -96 74 -16 0 -53 -48 -164 -211z"/>
+                                            </g>
+                                        </svg>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div id="timer-sep"></div>
+                    <div id="timer-picker">
+                        <table>
+                            <tr>
+                                <td>
+                                    Desde
+                                </td>
+                                <td>
+                                    <input id="from-time" type="time" value="18:00"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    Hasta
+                                </td>
+                                <td>
+                                    <input id="to-time" type="time" value="00:00"/>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div id="timer-save-div">
+                        <input type="button" value="Aplicar" id="timer-save">
+                    </div>
+                </div>
+            </div>
+
+            <div id="info-div">
+                <table style="width: 100%; padding: 1em;">
+                    <tr>
+                        <td>
+                            WiFi SSID
+                        </td>
+                        <td>
+                            <div id="wifi-ssid">-</div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            WiFi RSSI
+                        </td>
+                        <td>
+                            <div id="wifi-rssi">-</div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            Direccion IP local
+                        </td>
+                        <td>
+                            <a id="system-ip-addr">-</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            Reloj del sistema
+                        </td>
+                        <td>
+                            <div id="system-time">-</div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </body>
+</html>
