@@ -43,9 +43,18 @@ function update_checkbox() {
 
 function update_time() {
     system_time = received_data["system-time"];
-    system_time_elem.innerHTML = time_formatter.format(new Date(system_time*1000))
-        .replaceAll("/", "-")
-        .replaceAll(",", "") + " GMT-3";
+    // system_time_elem.innerHTML = time_formatter.format(new Date(system_time*1000))
+    //     .replaceAll("/", "-")
+    //     .replaceAll(",", "") + " GMT-3";
+
+    date = new Date(system_time*1000)
+    const hours = date.getUTCHours();
+    const minutes = date.getUTCMinutes();
+    const seconds = date.getUTCSeconds();
+
+    system_time_elem.innerHTML = String(hours).padStart(2, "0") + ":" +
+                                 String(minutes).padStart(2, "0") + ":" +
+                                 String(seconds).padStart(2, "0")
 }
 
 function update_now_temp() {
